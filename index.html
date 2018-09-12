@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title音频播放器快进快退插件</title>
+	<style>
+		.Audio{position: relative; width: 90%; margin: 15px auto; display: flex;flex-direction: column;}
+		.pgs{flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; height: 35px;}
+		.pgs .played-time{flex: 1; color: #848484; margin-right: 10px;}
+		.pgs .box{position: relative; flex: 4; background-color: #E3E8EE; height: 10px; border-radius: 10px; overflow: hidden;}
+		.pgs-play{position: absolute; top: 0; left: 0%; width: 0; height: 10px; background-color: #f54140; z-index: 1;}
+		.pgs img{width: 100%; height: 100%; display: block; z-index: 2;}
+		.audio-name{position: absolute; top: 0; width: 100%; left: 0; text-align: center; color: #666; font-size: 12px;}
+		.controls{flex: 1; display: flex; justify-content: center; align-items: center; height: 40px; padding: 0; text-align: center;}
+		.play-pause{border: 0; outline: 0; padding: 0; width: 40px; height: 40px; background: none; display: inline-block; vertical-align: middle;}
+		.icon-play{width: 40px; height: 40px; background: url(images/play.png) no-repeat; background-size: 100% 100%; display: block; color: #478f59;}
+		.icon-pause{width: 40px; height: 40px; background: url(images/pause.png) no-repeat; background-size: 100% 100%; display: block; color: #478f59;}
+		.controls span{color: #b3b5b7; font-size: 12px; display: inline-block;}
+		.controls button{margin:0 10px;}
+		.controls .fastFoward{display: inline-block; margin-left: 10px; border: 0; width: 30px; height: 30px; background: url(images/fastFoward.png) no-repeat; background-size: 100% 100%;}
+		.controls .fastBackward{display: inline-block; margin-right: 10px; border: 0; width: 30px; height: 30px; background: url(images/fastBackward.png) no-repeat; background-size: 100% 100%;}
+		.audio-time{display: inline-block; vertical-align: middle;}
+		.controls button:focus{outline: 0;}
+
+
+	</style>
+
+</head>
+<body>
+    <div class="Audio">
+	  <audio id="audioTag" src="seeyouagain.mp3"></audio>
+
+	  <div class="pgs">
+	    <span class="played-time">00:00</span>
+	    <div class="box">
+	      <div class="pgs-play" id="progress" style="width: 0%;"></div>
+	      <img src="images/progress.png"></div>
+	  </div>
+	  <div class="controls">
+	    <span class="played-time">00:00</span>
+	    <button class="fastBackward" onclick="fastBackward()"></button>
+	    <button class="play-pause" id="playPause">
+	      <span class="icon-btn icon-play"></span>
+	    </button>
+	    <button class="fastFoward" onclick="fastFoward()"></button>
+	    <span class="audio-time" id="audioTime">0</span>
+	  </div>
+	</div>
+
+
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<script type="text/javascript">
+            $(function() {
+			    var audio = $('#audioTag').get(0);
+			    $('#playPause').click(function() {
+			        audio.addEventListener('timeupdate', updateProgress, false);
+			        audio.addEventListener('ended', audioEnded, false);
+			        if (audio.paused) {
+			            audio.play();
+			            $('.icon-btn').removeClass('icon-play').addClass('icon-pause')
+			        } else {
+			            audio.pause();
+			            $('.icon-btn').removeClass('icon-pause').addClass('icon-play')
+			        }
+			    })
+			    $('#audioTag').on("loadedmetadata",function() {
+			        console.log(audio.duration);
+			        $('#audioTime').text(transTime(this.duration))
+			    });
+			    var pgsWidth = $('.pgs img').width() * 0.907;
+			    $('.pgs img').click(function(e) {
+			        var rate = (e.offsetX - ($(this).width() - pgsWidth) / 2) / pgsWidth;
+			        audio.currentTime = audio.duration * rate;
+			        updateProgress()
+			    })
+			})
+			function transTime(time) {
+			    var duration = parseInt(time);
+			    var minute = parseInt(duration / 60);
+			    var sec = duration % 60 + '';
+			    var isM0 = ':';
+			    if (minute == 0) {
+			        minute = '00'
+			    } else if (minute < 10) {
+			        minute = '0' + minute
+			    }
+			    if (sec.length == 1) {
+			        sec = '0' + sec
+			    }
+			    return minute + isM0 + sec
+			}
+			function updateProgress() {
+			    var audio = document.getElementsByTagName('audio')[0];
+			    var value = Math.round((Math.floor(audio.currentTime) / Math.floor(audio.duration)) * 100, 0);
+			    $('.pgs-play').css('width', value * 0.907 + '%');
+			    $('.played-time').html(transTime(audio.currentTime))
+			}
+			function audioEnded() {
+			    var audio = document.getElementsByTagName('audio')[0];
+			    audio.currentTime = 0;
+			    audio.pause();
+			    $('.play-pause>span').removeClass('icon-pause').addClass('icon-play')
+			}
+
+
+        
+
+		</script>
+
+		<script>
+            var _video = document.getElementById("audioTag");
+			// var x = 1;     
+			// var y = 10;     
+			// var rand = parseInt(Math.random() * (x - y + 1) + y);
+			//翻倍加快播放速度
+			function fastFoward() {
+
+			    //FF不支持playbackRate
+			    // 　　　　　　　　　　　　      if(_video.playbackRate){
+			    //                         _video.playbackRate = _video.playbackRate*2;
+			    //                     }else{
+			    //                         alert("对不起，你的浏览器不支持改变播放速度！");
+			    //                     }
+			    var audio = document.getElementsByTagName('audio')[0];
+			    audio.currentTime = audio.currentTime + 1;
+			}
+			//降低播放速度
+			function fastBackward() {
+			    // if(_video.playbackRate){
+			    //     _video.playbackRate = _video.playbackRate/2;
+			    // }else{
+			    //     alert("对不起，你的浏览器不支持改变播放速度！");
+			    // }
+			    var audio = document.getElementsByTagName('audio')[0];
+			    audio.currentTime = audio.currentTime - 1;
+			}
+		</script>
+
+</body>
+</html>
